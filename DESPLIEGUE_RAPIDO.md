@@ -17,7 +17,7 @@ python -c "import secrets; print(secrets.token_hex(32))"
 1. + New → GitHub Repo → Seleccionar repo
 2. Settings:
    - Root Directory: `backend`
-   - Start Command: `python start.py`
+   - Start Command: `uvicorn app.main:app --host 0.0.0.0 --port $PORT`
 3. Variables:
    ```
    DATABASE_URL=<copiada_del_paso_2>

@@ -9,18 +9,22 @@ Este error ocurre porque Railway no está expandiendo la variable `$PORT` correc
 
 ## ✅ Soluciones
 
-### Solución 1: Usar script Python start.py (Recomendado)
+### Solución 1: Usar uvicorn directamente (Recomendado)
 
-He creado un script `backend/start.py` que lee PORT correctamente desde las variables de entorno.
+La forma más simple y confiable:
 
 1. En Railway, ve a **Settings** → **Deploy**
 2. Cambia **Start Command** a:
    ```
-   python start.py
+   uvicorn app.main:app --host 0.0.0.0 --port $PORT
    ```
-3. Guarda y haz deploy nuevamente
+3. Si `$PORT` no funciona, usa:
+   ```
+   uvicorn app.main:app --host 0.0.0.0 --port 8000
+   ```
+4. Guarda y haz deploy nuevamente
 
-**Nota:** Este script está en `backend/start.py` y lee PORT automáticamente desde `os.environ`.
+**Nota:** Railway asignará el puerto correcto automáticamente, incluso si especificas 8000.
 
 ### Solución 2: Usar comando directo con puerto fijo (Alternativa)
 

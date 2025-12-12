@@ -65,9 +65,9 @@ Si aún no funciona, verifica:
 ### 2. Start Command está correcto
 - Settings → Deploy → Start Command debe ser:
   ```
-  python start.py
+  uvicorn app.main:app --host 0.0.0.0 --port $PORT
   ```
-  O alternativamente (si el script no funciona):
+  O alternativamente (si $PORT no funciona):
   ```
   uvicorn app.main:app --host 0.0.0.0 --port 8000
   ```
