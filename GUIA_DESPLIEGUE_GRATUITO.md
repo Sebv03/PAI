@@ -31,6 +31,7 @@ python -c "import secrets; print(secrets.token_hex(32))"
 4. Autoriza Railway a acceder a tu repositorio
 
 ---
+postgresql://postgres:olzGvwkrSAzQCQfbUOwuGLcwsoJWyLTR@postgres.railway.internal:5432/railway
 
 ## 📝 PASO 3: Desplegar Base de Datos PostgreSQL en Railway
 
@@ -55,11 +56,13 @@ python -c "import secrets; print(secrets.token_hex(32))"
 
 ### 4.2 Configurar Backend en Railway
 
-1. Haz clic en el servicio del backend
+1. Haz clic en el servicio del backend (tarjeta "PAI")
 2. Ve a la pestaña **"Settings"**
-3. Cambia:
+3. En la sección **"Source"**, configura:
    - **Root Directory**: `backend`
-   - **Build Command**: `pip install -r requirements.txt`
+4. En la sección **"Build"**, configura:
+   - **Build Command**: `pip install -r requirements.txt` (o déjalo en blanco, Railway lo detectará automáticamente)
+5. En la sección **"Deploy"**, configura:
    - **Start Command**: `uvicorn app.main:app --host 0.0.0.0 --port $PORT`
 
 ### 4.3 Configurar Variables de Entorno
@@ -78,17 +81,37 @@ UPLOAD_DIR=uploads/submissions
 - Reemplaza `SECRET_KEY` con la clave que generaste en el Paso 1
 - Por ahora deja `BACKEND_CORS_ORIGINS` con un valor temporal, lo actualizarás después
 
-### 4.4 Obtener URL del Backend
+### 4.4 Desplegar el Backend
+
+**IMPORTANTE:** Primero debes hacer el deploy antes de poder generar el dominio.
+
+1. En Railway, haz clic en el botón **"Deploy"** (arriba a la izquierda, botón morado con flecha hacia arriba)
+2. O presiona **Ctrl+Enter** (o **Cmd+Enter** en Mac)
+3. Espera a que el build y deploy se complete (puede tomar 2-5 minutos)
+4. Verás el progreso en la pestaña **"Deployments"**
+
+### 4.5 Obtener URL del Backend (DESPUÉS del deploy)
+
+**Solo después de que el deploy esté completo:**
 
 1. Ve a la pestaña **"Settings"** del backend
-2. Activa **"Generate Domain"**
-3. Copia la URL generada (ejemplo: `https://pai-backend-production.up.railway.app`)
-4. **¡GUARDA ESTA URL!** La necesitarás para el frontend
+2. En la sección **"Networking"** → **"Public Networking"**
+3. Verás un campo que dice **"Public domain will be generated"**
+4. Haz clic en el ícono de **globo** 🌐 o en el campo mismo
+5. Railway generará automáticamente un dominio (ejemplo: `https://pai-production.up.railway.app`)
+6. **¡GUARDA ESTA URL!** La necesitarás para el frontend
 
-### 4.5 Verificar que el Backend funciona
+**Si no aparece el dominio:**
+- Asegúrate de que el deploy haya terminado exitosamente (verifica en "Deployments")
+- Verifica que no haya errores en los logs
+- Intenta hacer clic en el botón **"Generate Domain"** si está visible
+- Si aún no funciona, ve a **"Settings"** → **"Networking"** → activa **"Public Networking"**
+
+### 4.6 Verificar que el Backend funciona
 
 1. Ve a: `https://tu-backend-url.railway.app/docs`
 2. Deberías ver la documentación de Swagger de FastAPI
+3. Si no carga, revisa los logs en la pestaña **"Deployments"** o **"Metrics"**
 
 ---
 
