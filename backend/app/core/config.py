@@ -8,13 +8,15 @@ class Settings(BaseSettings):
     API_V1_STR: str = "/api/v1"
     
     # CORS - Permitir múltiples orígenes (separados por comas)
-    # En producción, usa variables de entorno
-    _cors_origins = os.getenv("BACKEND_CORS_ORIGINS", "http://localhost:5173,http://127.0.0.1:5173")
-    BACKEND_CORS_ORIGINS: List[str] = (
-        [origin.strip() for origin in _cors_origins.split(",") if origin.strip()]
-        if isinstance(_cors_origins, str)
-        else ["http://localhost:5173", "http://127.0.0.1:5173"]
-    )
+    # En producción, usa variables de entorno como string separado por comas
+    # Ejemplo: "https://app.vercel.app,https://app2.vercel.app"
+    BACKEND_CORS_ORIGINS: str = "http://localhost:5173,http://127.0.0.1:5173"
+    
+    def get_cors_origins(self) -> List[str]:
+        """Retorna BACKEND_CORS_ORIGINS como lista de strings"""
+        if not self.BACKEND_CORS_ORIGINS:
+            return ["http://localhost:5173", "http://127.0.0.1:5173"]
+        return [origin.strip() for origin in self.BACKEND_CORS_ORIGINS.split(",") if origin.strip()]
     
     # --- ¡CRÍTICO! Tu URL de Base de Datos para PostgreSQL ---
     # En producción, usarás la variable de entorno DATABASE_URL de Railway/Render/Supabase
