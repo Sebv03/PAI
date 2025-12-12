@@ -65,10 +65,6 @@ Si aún no funciona, verifica:
 ### 2. Start Command está correcto
 - Settings → Deploy → Start Command debe ser:
   ```
-  bash start.sh
-  ```
-  O alternativamente:
-  ```
   python -m uvicorn app.main:app --host 0.0.0.0 --port ${PORT:-8000}
   ```
 

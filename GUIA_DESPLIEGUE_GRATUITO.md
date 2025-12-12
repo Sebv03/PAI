@@ -63,12 +63,12 @@ postgresql://postgres:olzGvwkrSAzQCQfbUOwuGLcwsoJWyLTR@postgres.railway.internal
 4. En la sección **"Build"**, configura:
    - **Build Command**: `pip install -r requirements.txt` (o déjalo en blanco, Railway lo detectará automáticamente)
 5. En la sección **"Deploy"**, configura:
-   - **Start Command**: `bash start.sh`
-   
-   **Nota:** Si prefieres usar el comando directo, usa:
+   - **Start Command**: 
    ```
    python -m uvicorn app.main:app --host 0.0.0.0 --port ${PORT:-8000}
    ```
+   
+   **Nota:** Railway proporciona PORT automáticamente. El comando `${PORT:-8000}` usa PORT si está disponible, o 8000 como respaldo.
 
 ### 4.3 Configurar Variables de Entorno
 

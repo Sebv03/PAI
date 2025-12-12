@@ -9,18 +9,7 @@ Este error ocurre porque Railway no está expandiendo la variable `$PORT` correc
 
 ## ✅ Soluciones
 
-### Solución 1: Usar el script start.sh (Recomendado)
-
-He creado un script `backend/start.sh` que lee PORT correctamente.
-
-1. En Railway, ve a **Settings** → **Deploy**
-2. Cambia **Start Command** a:
-   ```
-   bash start.sh
-   ```
-3. Guarda y haz deploy nuevamente
-
-### Solución 2: Usar Python directamente
+### Solución 1: Usar Python directamente (Recomendado)
 
 Si prefieres no usar el script, usa este comando:
 
@@ -31,9 +20,9 @@ Si prefieres no usar el script, usa este comando:
    ```
 3. Guarda y haz deploy nuevamente
 
-### Solución 3: Usar comando con valor por defecto
+### Solución 2: Usar uvicorn directamente (Alternativa)
 
-Alternativa más simple:
+Si la Solución 1 no funciona, prueba:
 
 1. En Railway, ve a **Settings** → **Deploy**
 2. Cambia **Start Command** a:
@@ -44,7 +33,7 @@ Alternativa más simple:
 
 ## 🔍 ¿Por qué ocurre esto?
 
-Railway proporciona la variable `PORT` automáticamente, pero a veces no expande `$PORT` correctamente en el comando. El script `start.sh` lee PORT desde las variables de entorno del sistema, que Railway siempre proporciona correctamente.
+Railway proporciona la variable `PORT` automáticamente, pero a veces no expande `$PORT` correctamente en el comando. Usar `python -m uvicorn` con `${PORT:-8000}` es más confiable porque Python puede leer las variables de entorno directamente.
 
 ## 📝 Verificación
 
@@ -63,10 +52,15 @@ Después de cambiar el comando:
 
 ## 🚨 Si aún no funciona
 
-1. Verifica que el archivo `start.sh` esté en la carpeta `backend/`
-2. Verifica que tenga permisos de ejecución (Railway lo maneja automáticamente)
+1. Verifica que el **Root Directory** esté configurado como `backend` en Settings
+2. Verifica que `requirements.txt` esté en la carpeta `backend/`
 3. Revisa los logs completos en Railway para ver el error exacto
-4. Prueba la Solución 2 o 3 como alternativa
+4. Prueba la Solución 2 como alternativa
+5. Si Railway no reconoce `${PORT}`, intenta usar directamente el valor por defecto:
+   ```
+   python -m uvicorn app.main:app --host 0.0.0.0 --port 8000
+   ```
+   (Railway asignará el puerto automáticamente)
 
 ---
 
