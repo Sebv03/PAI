@@ -138,10 +138,19 @@ UPLOAD_DIR=uploads/submissions
 
 ### 6.2 Configurar Build
 
-1. **Framework Preset**: Vite
-2. **Root Directory**: `frontend`
-3. **Build Command**: `npm run build`
-4. **Output Directory**: `dist`
+**IMPORTANTE:** Configura estos valores exactamente:
+
+1. **Framework Preset**: Selecciona **"Vite"** (o "Other" si no aparece)
+2. **Root Directory**: `frontend` ⚠️ **MUY IMPORTANTE - Debe ser exactamente "frontend"**
+3. **Build Command**: Déjalo **vacío** (Vercel lo detectará automáticamente) O usa: `npm run build`
+4. **Output Directory**: Déjalo **vacío** (Vercel lo detectará automáticamente) O usa: `dist`
+5. **Install Command**: Déjalo **vacío** (Vercel usará `npm install` automáticamente)
+
+**Nota:** Si el build falla por errores de TypeScript, temporalmente cambia el Build Command a:
+```
+vite build
+```
+Esto omitirá la verificación de tipos durante el build.
 
 ### 6.3 Variables de Entorno del Frontend
 
