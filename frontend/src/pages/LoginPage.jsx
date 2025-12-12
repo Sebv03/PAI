@@ -88,17 +88,65 @@ const LoginPage = () => {
     };
 
     return (
-        <div className="min-h-screen flex items-center justify-center bg-gradient-primary" style={{ padding: '1rem' }}>
-            <div className="container-sm">
-                <div className="card" style={{ maxWidth: '400px', margin: '0 auto', boxShadow: 'var(--shadow-xl)' }}>
-                    <div className="text-center mb-lg">
-                        <h1 style={{ fontSize: '2rem', marginBottom: '0.5rem' }}>Plataforma PAI</h1>
-                        <h2 style={{ fontSize: '1.25rem', color: 'var(--text-secondary)', fontWeight: '400' }}>Iniciar Sesión</h2>
+        <div className="min-h-screen flex items-center justify-center" style={{ 
+            padding: '1rem',
+            background: 'var(--bg-gradient-soft)',
+            position: 'relative',
+            overflow: 'hidden'
+        }}>
+            {/* Elementos decorativos de fondo */}
+            <div style={{
+                position: 'absolute',
+                top: '-50%',
+                right: '-50%',
+                width: '800px',
+                height: '800px',
+                background: 'var(--primary-gradient)',
+                borderRadius: '50%',
+                opacity: 0.1,
+                filter: 'blur(80px)',
+                pointerEvents: 'none'
+            }}></div>
+            <div style={{
+                position: 'absolute',
+                bottom: '-50%',
+                left: '-50%',
+                width: '800px',
+                height: '800px',
+                background: 'var(--bg-gradient-secondary)',
+                borderRadius: '50%',
+                opacity: 0.1,
+                filter: 'blur(80px)',
+                pointerEvents: 'none'
+            }}></div>
+            
+            <div className="container-sm" style={{ position: 'relative', zIndex: 1 }}>
+                <div className="card animate-scaleIn glass-effect" style={{ 
+                    maxWidth: '440px', 
+                    margin: '0 auto',
+                    boxShadow: 'var(--shadow-2xl)'
+                }}>
+                    <div className="text-center mb-xl">
+                        <h1 className="gradient-text" style={{ 
+                            fontSize: '2.5rem', 
+                            marginBottom: '0.5rem',
+                            fontWeight: '800'
+                        }}>
+                            Plataforma PAI
+                        </h1>
+                        <h2 style={{ 
+                            fontSize: '1.125rem', 
+                            color: 'var(--text-secondary)', 
+                            fontWeight: '400',
+                            letterSpacing: '0.01em'
+                        }}>
+                            Iniciar Sesión
+                        </h2>
                     </div>
                     
                     {error && (
-                        <div className="alert alert-error mb-lg">
-                            <p>{error}</p>
+                        <div className="alert alert-error mb-lg animate-fadeIn">
+                            <p style={{ margin: 0 }}>{error}</p>
                         </div>
                     )}
                     
@@ -115,6 +163,7 @@ const LoginPage = () => {
                                 required
                                 className="input-field"
                                 placeholder="tu@email.com"
+                                autoComplete="email"
                             />
                         </div>
                         
@@ -130,20 +179,36 @@ const LoginPage = () => {
                                 required
                                 className="input-field"
                                 placeholder="••••••••"
+                                autoComplete="current-password"
                             />
                         </div>
                         
                         <button
                             type="submit"
                             className="btn btn-primary btn-full btn-lg"
+                            style={{
+                                marginTop: '0.5rem'
+                            }}
                         >
                             Ingresar
                         </button>
                     </form>
                     
-                    <p className="text-center" style={{ marginTop: '1.5rem', color: 'var(--text-secondary)' }}>
+                    <p className="text-center" style={{ 
+                        marginTop: '2rem', 
+                        color: 'var(--text-secondary)',
+                        fontSize: '0.875rem'
+                    }}>
                         ¿No tienes una cuenta?{' '}
-                        <Link to="/register" style={{ color: 'var(--primary)', fontWeight: '600' }}>
+                        <Link 
+                            to="/register" 
+                            className="gradient-text"
+                            style={{ 
+                                fontWeight: '600',
+                                textDecoration: 'underline',
+                                textUnderlineOffset: '2px'
+                            }}
+                        >
                             Regístrate aquí
                         </Link>
                     </p>

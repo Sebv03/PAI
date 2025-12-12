@@ -23,8 +23,15 @@ class User(Base):
     rol = Column("rol", Enum(UserRole), default=UserRole.ESTUDIANTE, nullable=False)
 
     courses = relationship("Course", back_populates="owner")
-    enrollments = relationship("Enrollment", back_populates="student")
-    submissions = relationship("Submission", back_populates="student")
+    enrollments = relationship("Enrollment", back_populates="student", cascade="all, delete-orphan")
+    submissions = relationship("Submission", back_populates="student", cascade="all, delete-orphan")
+    exam_submissions = relationship("ExamSubmission", back_populates="estudiante", cascade="all, delete-orphan")
     announcements = relationship("Announcement", back_populates="author")
     comments = relationship("Comment", back_populates="author")
     student_profile = relationship("StudentProfile", back_populates="student", uselist=False)
+    
+    # Relación con Recomendaciones (un estudiante puede tener muchas recomendaciones)
+    recomendaciones = relationship("RecomendacionEstudiante", back_populates="estudiante", cascade="all, delete-orphan")
+    
+    # Relación con Interacciones de Recursos (un estudiante puede tener muchas interacciones)
+    interacciones_recursos = relationship("InteraccionRecurso", back_populates="estudiante", cascade="all, delete-orphan")

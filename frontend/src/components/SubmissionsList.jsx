@@ -40,8 +40,8 @@ const SubmissionsList = ({ taskId, onGradeUpdated }) => {
 
         // Validar nota
         const gradeNum = parseFloat(grade);
-        if (isNaN(gradeNum) || gradeNum < 1.0 || gradeNum > 7.0) {
-            setGradingError('La calificación debe ser un número entre 1.0 y 7.0');
+        if (isNaN(gradeNum) || gradeNum < 0 || gradeNum > 100) {
+            setGradingError('La calificación debe ser un número entre 0 y 100');
             return;
         }
 
@@ -52,7 +52,7 @@ const SubmissionsList = ({ taskId, onGradeUpdated }) => {
             });
 
             // Actualizar la lista de entregas
-            setSubmissions(prev => prev.map(sub => 
+            setSubmissions(prev => prev.map(sub =>
                 sub.id === submissionId ? response.data : sub
             ));
 
@@ -80,7 +80,7 @@ const SubmissionsList = ({ taskId, onGradeUpdated }) => {
             const response = await apiClient.get(`/submissions/${submissionId}/download`, {
                 responseType: 'blob',
             });
-            
+
             const url = window.URL.createObjectURL(new Blob([response.data]));
             const link = document.createElement('a');
             link.href = url;
@@ -131,14 +131,14 @@ const SubmissionsList = ({ taskId, onGradeUpdated }) => {
             <h5 style={{ fontSize: '1.125rem', fontWeight: '600', marginBottom: '1rem' }}>
                 Entregas ({submissions.length})
             </h5>
-            
+
             <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
                 {submissions.map(submission => {
                     const isGrading = gradingSubmission === submission.id;
-                    
+
                     return (
-                        <div 
-                            key={submission.id} 
+                        <div
+                            key={submission.id}
                             className="card"
                         >
                             <div className="flex justify-between items-start" style={{ marginBottom: '1rem' }}>
@@ -161,8 +161,15 @@ const SubmissionsList = ({ taskId, onGradeUpdated }) => {
                                         })}
                                     </p>
                                     {submission.grade !== null && submission.grade !== undefined && (
-                                        <span className="badge badge-success" style={{ marginTop: '0.5rem' }}>
-                                            Calificación: {submission.grade.toFixed(1)} / 7.0
+                                        <span
+                                            className={`badge ${submission.grade < 60 ? 'badge-error' : 'badge-success'}`}
+                                            style={{
+                                                marginTop: '0.5rem',
+                                                backgroundColor: submission.grade < 60 ? 'var(--danger)' : 'var(--success)',
+                                                color: 'white'
+                                            }}
+                                        >
+                                            Calificación: {submission.grade.toFixed(1)} / 100
                                         </span>
                                     )}
                                 </div>
@@ -216,12 +223,12 @@ const SubmissionsList = ({ taskId, onGradeUpdated }) => {
                                     )}
                                     <div className="form-group">
                                         <label className="label">
-                                            Calificación (1.0 - 7.0)
+                                            Calificación (0 - 100)
                                         </label>
                                         <input
                                             type="number"
-                                            min="1.0"
-                                            max="7.0"
+                                            min="0"
+                                            max="100"
                                             step="0.1"
                                             value={grade}
                                             onChange={(e) => setGrade(e.target.value)}

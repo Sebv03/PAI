@@ -17,7 +17,7 @@ class SubmissionCreate(SubmissionBase):
 # Esquema para actualizar (ej. un docente añade nota)
 class SubmissionUpdate(BaseModel):
     content: Optional[str] = None
-    grade: Optional[float] = None  # Nota de 1.0 a 7.0
+    grade: Optional[float] = None  # Nota de 0 a 100
     feedback: Optional[str] = None  # Comentarios del docente
 
 # Esquema para leer una entrega (lo que la API devuelve)
@@ -27,7 +27,7 @@ class Submission(SubmissionBase):
     task_id: int
     submitted_at: datetime
     file_path: Optional[str] = None  # Ruta del archivo PDF si existe
-    grade: Optional[float] = None  # Calificación (1.0 a 7.0)
+    grade: Optional[float] = None  # Calificación (0 a 100)
     feedback: Optional[str] = None  # Feedback del docente
     
     model_config = ConfigDict(from_attributes=True)

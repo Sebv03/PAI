@@ -231,3 +231,6 @@ Desarrollado para plataforma educativa pre-universitaria.
 **Versión**: 1.0.0
 **Última actualización**: 2025-11-30
 
+
+
+

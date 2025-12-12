@@ -22,4 +22,5 @@ class Course(Base):
     
     # --- ASEGÚRATE DE QUE ESTA LÍNEA ESTÉ ASÍ ---
     tasks = relationship("Task", back_populates="course", cascade="all, delete-orphan")
+    exams = relationship("Exam", back_populates="curso", cascade="all, delete-orphan")
     announcements = relationship("Announcement", back_populates="course", cascade="all, delete-orphan")

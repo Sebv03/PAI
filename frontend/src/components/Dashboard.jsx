@@ -51,19 +51,39 @@ const Dashboard = () => {
 
     // Si el usuario SÍ está cargado, muestra el contenido
     return (
-        <div className="min-h-screen">
-            {/* Navbar */}
+        <div className="min-h-screen animate-fadeIn">
+            {/* Navbar Moderno */}
             <nav className="navbar">
                 <div className="navbar-content">
-                    <a href="/dashboard" className="navbar-brand">Plataforma PAI</a>
+                    <Link to="/dashboard" className="navbar-brand">
+                        Plataforma PAI
+                    </Link>
                     <div className="navbar-user">
                         <div className="text-right">
-                            <p style={{ fontSize: '0.875rem', fontWeight: '500', color: 'var(--text-primary)' }}>{user.nombre_completo || user.full_name}</p>
-                            <p style={{ fontSize: '0.75rem', color: 'var(--text-secondary)', textTransform: 'capitalize' }}>{user.rol || user.role}</p>
+                            <p style={{ 
+                                fontSize: '0.875rem', 
+                                fontWeight: '600', 
+                                color: 'var(--text-primary)',
+                                marginBottom: '0.125rem'
+                            }}>
+                                {user.nombre_completo || user.full_name}
+                            </p>
+                            <p style={{ 
+                                fontSize: '0.75rem', 
+                                color: 'var(--text-secondary)', 
+                                textTransform: 'capitalize',
+                                fontWeight: '500'
+                            }}>
+                                {user.rol || user.role}
+                            </p>
                         </div>
                         <button 
                             onClick={logout} 
                             className="btn btn-danger btn-sm"
+                            style={{ 
+                                fontWeight: '600',
+                                boxShadow: 'var(--shadow-danger)'
+                            }}
                         >
                             Cerrar Sesión
                         </button>
@@ -72,14 +92,14 @@ const Dashboard = () => {
             </nav>
 
             {/* Contenido Principal */}
-            <div className="container" style={{ paddingTop: '2rem', paddingBottom: '2rem' }}>
+            <div className="container animate-slideUp" style={{ paddingTop: '2rem', paddingBottom: '3rem' }}>
                 {/* Renderizado Condicional basado en Rol */}
                 {(user.rol === 'docente' || user.role === 'docente') && <TeacherDashboard user={user} />}
                 {(user.rol === 'estudiante' || user.role === 'estudiante') && <StudentDashboard user={user} />}
                 {(user.rol === 'administrador' || user.role === 'administrador') && <AdminDashboard user={user} />}
                 {(user.rol === 'psicopedagogo' || user.role === 'psicopedagogo') && (
-                    <div className="card">
-                        <h2>Dashboard de Psicopedagogo</h2>
+                    <div className="card animate-scaleIn">
+                        <h2 className="gradient-text">Dashboard de Psicopedagogo</h2>
                         <p>Panel en construcción</p>
                     </div>
                 )}

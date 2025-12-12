@@ -186,3 +186,41 @@ async def read_students_in_course(
         })
     
     return result
+
+# ----------------- Endpoint para ELIMINAR a un estudiante de un curso (Admin/Docente) -----------------
+@router.delete("/course/{course_id}/student/{student_id}", status_code=status.HTTP_204_NO_CONTENT)
+async def remove_student_from_course(
+    course_id: int,
+    student_id: int,
+    db: Session = Depends(deps.get_db),
+    current_user: UserModel = Depends(deps.get_current_user)
+):
+    """
+    Elimina (da de baja) a un estudiante de un curso específico.
+    Acceso: Administrador o Docente propietario del curso.
+    """
+    course = crud_course.get_course_by_id(db, course_id=course_id)
+    if not course:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Curso no encontrado")
+    
+    # Verificar permisos: Admin o Propietario
+    if current_user.rol != UserRole.ADMINISTRADOR and current_user.id != course.propietario_id:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="No tienes permiso para eliminar estudiantes de este curso"
+        )
+    
+    # Verificar si existe la inscripción
+    enrollment = crud_enrollment.get_enrollment_by_user_and_course(
+        db, student_id=student_id, course_id=course_id
+    )
+    if not enrollment:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="El estudiante no está inscrito en este curso"
+        )
+    
+    # Eliminar
+    crud_enrollment.delete_enrollment(db, db_enrollment=enrollment)
+    
+    return None

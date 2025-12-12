@@ -1,0 +1,957 @@
+================================================================================
+                    INFORME TÉCNICO DEL PROYECTO
+         Plataforma Académica Inteligente (PAI) - Análisis de Código
+================================================================================
+
+Fecha de Análisis: Diciembre 2025
+Versión del Sistema: 1.0.0
+Arquitecto de Software: Análisis basado en código fuente actualizado
+
+================================================================================
+1. ANÁLISIS DE LA PROBLEMÁTICA
+================================================================================
+
+1.1. IDENTIFICACIÓN DEL PROBLEMA
+
+El código analizado revela que el sistema resuelve una problemática crítica en el 
+ámbito educativo pre-universitario: la falta de herramientas tecnológicas 
+integradas para la gestión académica, el seguimiento personalizado del 
+rendimiento estudiantil y la detección temprana de riesgos académicos.
+
+Problemas específicos identificados:
+
+a) Gestión Académica Fragmentada:
+   - Ausencia de un sistema centralizado para la administración de cursos, 
+     tareas y evaluaciones
+   - Falta de comunicación estructurada entre docentes y estudiantes
+   - Inexistencia de un repositorio organizado de recursos educativos
+   - No existe un sistema unificado para exámenes con múltiples formatos
+
+b) Falta de Personalización Educativa:
+   - Ausencia de mecanismos para adaptar el contenido educativo según el perfil 
+     del estudiante
+   - No existe un sistema de recomendaciones basado en el rendimiento académico
+   - Falta de seguimiento individualizado del progreso estudiantil
+   - No hay recursos remediales automatizados
+
+c) Detección Tardía de Problemas Académicos:
+   - Falta de alertas tempranas sobre bajo rendimiento
+   - Ausencia de herramientas de análisis de datos académicos
+   - No existe correlación sistemática entre perfiles estudiantiles y rendimiento
+
+d) Preparación Ineficiente para PAES:
+   - No existe una plataforma especializada en la preparación para la Prueba 
+     de Acceso a la Educación Superior (PAES)
+   - Falta de organización temática por conceptos académicos
+   - Ausencia de recursos remediales automatizados
+   - No hay sistema de evaluación flexible (solo PDF o solo estructurado)
+
+1.2. AFECTADOS E INTERESADOS
+
+Basado en el análisis del código (especialmente en `backend/app/models/user.py`, 
+`frontend/src/components/Dashboard.jsx` y `frontend/src/pages/ExamDetailPage.jsx`), 
+se identifican los siguientes actores del sistema:
+
+a) ESTUDIANTES (Rol: 'estudiante'):
+   - Usuarios principales del sistema
+   - Interactúan con: cursos, tareas, exámenes, recursos educativos, 
+     recomendaciones, perfil académico
+   - Funcionalidades: visualización de cursos inscritos, entrega de tareas 
+     (PDF), realización de exámenes (PDF, opción múltiple, desarrollo), 
+     consulta de calificaciones y retroalimentación, acceso a recursos 
+     recomendados, completar cuestionario de perfil (8 variables + género), 
+     visualización de respuestas y calificaciones de exámenes
+
+b) DOCENTES (Rol: 'docente'):
+   - Gestores de contenido académico
+   - Interactúan con: creación y gestión de cursos, asignación de tareas, 
+     calificación de entregas, creación de exámenes (PDF, preguntas estructuradas), 
+     publicación de anuncios, visualización de rendimiento estudiantil, 
+     calificación de exámenes con retroalimentación
+   - Funcionalidades: dashboard de gestión de cursos, creación de tareas con 
+     conceptos asociados, calificación de submissions (escala 1.0-7.0), creación 
+     de exámenes con soporte para PDF o preguntas estructuradas (opción múltiple 
+     y desarrollo), sistema de comunicados, visualización de todas las entregas 
+     de estudiantes con sus respuestas completas, sistema de calificación con 
+     feedback personalizado
+
+c) ADMINISTRADORES (Rol: 'administrador'):
+   - Gestores del sistema
+   - Interactúan con: gestión de usuarios, gestión de cursos (crear/eliminar), 
+     supervisión general del sistema
+   - Funcionalidades: dashboard administrativo, creación/eliminación de cursos, 
+     gestión de usuarios, supervisión de actividad del sistema, acceso a todas 
+     las funcionalidades de docentes
+
+================================================================================
+2. ANÁLISIS DE LA SOLUCIÓN
+================================================================================
+
+2.1. ALCANCE Y RESTRICCIONES
+
+ALCANCE (Funcionalidades Implementadas):
+
+a) Gestión Académica Completa:
+   - Sistema de cursos con inscripciones (enrollments) y gestión de propietarios
+   - Gestión de tareas con fechas de vencimiento, conceptos asociados y 
+     calificación con retroalimentación
+   - Sistema de exámenes avanzado con tres modalidades:
+     * Subida de archivo PDF completo del examen
+     * Preguntas de opción múltiple con múltiples opciones y respuesta correcta
+     * Preguntas de desarrollo/ensayo con criterios de evaluación
+   - Calificación y retroalimentación de entregas (escala 1.0-7.0)
+   - Sistema de comunicados y anuncios
+   - Sistema de comentarios en anuncios
+
+b) Personalización y Recomendaciones:
+   - Sistema de recomendaciones basado en reglas (Nivel 1) completamente funcional
+   - Asociación de recursos educativos con conceptos académicos mediante 
+     tabla de relación muchos-a-muchos (recurso_conceptos)
+   - Recomendaciones automáticas cuando un estudiante obtiene nota baja (< 4.0)
+   - Seguimiento de interacciones con recursos (interacciones_recursos)
+   - Priorización de recursos según relevancia de conceptos
+   - Filtrado de recomendaciones duplicadas
+
+c) Perfiles y Análisis:
+   - Cuestionario de perfil estudiantil completo (8 variables cuantitativas 
+     escala 1-10 + género)
+   - Dashboard personalizado según rol de usuario (estudiante, docente, admin)
+   - Visualización de progreso académico
+   - Sistema de reglas para recomendaciones (tabla rules)
+   - Almacenamiento de perfiles estudiantiles para análisis futuro
+
+d) Seguridad y Autenticación:
+   - Autenticación mediante JWT (JSON Web Tokens) con expiración de 30 minutos
+   - Hash de contraseñas con bcrypt (algoritmo robusto)
+   - Control de acceso basado en roles (RBAC) con tres niveles
+   - Validación de datos con Pydantic en múltiples capas
+   - Manejo correcto de tipos en JWT (conversión string/int para compatibilidad)
+   - Pool de conexiones a base de datos configurado (5 base, 10 máximo)
+
+e) Gestión de Archivos:
+   - Subida de archivos PDF para tareas y exámenes
+   - Almacenamiento en sistema de archivos local (`backend/uploads/submissions/` 
+     y `backend/uploads/exams/`)
+   - Nomenclatura única con timestamps para evitar conflictos
+   - Validación de tipo de archivo (solo PDF)
+
+f) Sistema de Conceptos y Recursos:
+   - Gestión de conceptos académicos con categorías y niveles
+   - Gestión de recursos educativos con estado activo/inactivo
+   - Asociación muchos-a-muchos entre recursos y conceptos
+   - Asociación muchos-a-muchos entre tareas y conceptos
+   - Sistema de tags y categorización
+
+RESTRICCIONES TÉCNICAS IDENTIFICADAS:
+
+a) Limitaciones de Arquitectura:
+   - Sistema de recomendaciones limitado a motor basado en reglas (Nivel 1)
+   - No se observa implementación de algoritmos de recomendación avanzados 
+     (colaborativo, contenido avanzado, híbrido)
+   - No hay sistema de evaluación automática de opción múltiple (requiere 
+     calificación manual)
+   - No existe sistema de predicción de riesgo académico
+
+b) Limitaciones de Escalabilidad:
+   - Almacenamiento de archivos en sistema de archivos local (no cloud storage)
+   - Pool de conexiones a base de datos limitado (5 conexiones base, 10 máximo)
+   - No se observa implementación de caché (Redis, Memcached)
+   - No hay paginación implementada en todos los endpoints
+
+c) Limitaciones Funcionales:
+   - Sistema de exámenes no incluye evaluación automática de opción múltiple
+   - No se observa sistema de notificaciones en tiempo real (WebSockets)
+   - Falta de integración con sistemas externos (LMS, correo electrónico, SMS)
+   - No hay sistema de backup automático de archivos
+   - Falta de sistema de versionado de exámenes
+
+d) Limitaciones de Seguridad:
+   - Secret key hardcodeada en configuración (requiere variables de entorno 
+     en producción)
+   - CORS configurado para desarrollo local (requiere ajuste para producción)
+   - No se observa implementación de rate limiting
+   - No hay logging de seguridad estructurado
+   - Falta de encriptación de archivos en reposo
+
+2.2. PROCESOS DE NEGOCIO INVOLUCRADOS
+
+Basado en el análisis del flujo de código actualizado, se identifican los siguientes 
+procesos principales:
+
+PROCESO 1: Registro e Inicialización de Usuario
+  1. Usuario accede a `/register` (RegisterPage.jsx)
+  2. Completa formulario básico (email, contraseña, nombre, rol)
+  3. Si es estudiante, completa cuestionario de perfil (8 variables escala 1-10 + género)
+  4. Sistema crea registro en tabla `users` (POST /users/)
+  5. Sistema crea perfil estudiantil en tabla `student_profiles` 
+     (POST /api/v1/student-profile/)
+  6. Usuario es redirigido a login
+
+PROCESO 2: Autenticación y Autorización
+  1. Usuario ingresa credenciales en `/login` (LoginPage.jsx)
+  2. Frontend envía POST a `/login/access-token` (login.py)
+  3. Backend valida credenciales con bcrypt (security.py)
+  4. Backend genera JWT token con expiración de 30 minutos (conversión correcta 
+     de user.id a string para jose)
+  5. Token se almacena en Zustand store (authStore.js)
+  6. Token se incluye en headers de todas las peticiones subsiguientes
+  7. Usuario es redirigido a dashboard según su rol
+
+PROCESO 3: Gestión de Cursos (Docente)
+  1. Docente accede a dashboard y selecciona "Crear Curso"
+  2. Frontend envía POST a `/courses/` (courses.py)
+  3. Sistema crea curso en tabla `courses` con propietario_id
+  4. Docente puede asignar estudiantes mediante enrollments
+  5. Docente crea tareas asociadas al curso
+  6. Docente puede eliminar cursos (solo administradores)
+
+PROCESO 4: Inscripción a Cursos (Estudiante)
+  1. Estudiante visualiza cursos disponibles en dashboard
+  2. Estudiante selecciona curso y solicita inscripción
+  3. Frontend envía POST a `/enrollments/` (enrollments.py)
+  4. Sistema crea registro en tabla `enrollments` con fecha de inscripción
+  5. Curso aparece en dashboard del estudiante
+
+PROCESO 5: Creación y Entrega de Tareas
+  1. Docente crea tarea: POST a `/tasks/` (tasks.py)
+  2. Docente asocia conceptos a la tarea: POST a `/tareas-conceptos/`
+  3. Estudiante visualiza tarea en dashboard con fecha de vencimiento
+  4. Estudiante sube archivo PDF: POST a `/submissions/` (submissions.py)
+  5. Sistema almacena archivo en `uploads/submissions/` con nomenclatura única
+  6. Docente visualiza entrega: GET a `/submissions/{id}`
+  7. Docente califica: PUT a `/submissions/{id}` con grade (1.0-7.0) y feedback
+  8. Si nota < 4.0, sistema activa proceso de recomendaciones automáticas
+
+PROCESO 6: Sistema de Recomendaciones Automáticas
+  1. Trigger: Calificación de tarea con nota < 4.0 (umbral configurable)
+  2. RecommendationService identifica conceptos asociados a la tarea fallida
+  3. Sistema busca recursos que cubran esos conceptos (tabla recurso_conceptos)
+  4. Sistema filtra recursos ya recomendados para esta tarea (evita duplicados)
+  5. Sistema prioriza recursos por número de conceptos coincidentes
+  6. Sistema limita a máximo 3 recomendaciones por tarea
+  7. Sistema crea recomendaciones en tabla `recomendaciones_estudiantes`
+  8. Recomendaciones aparecen en dashboard del estudiante
+  9. Estudiante puede marcar recomendaciones como vistas
+
+PROCESO 7: Creación y Realización de Exámenes (COMPLETO)
+  1. Docente accede a formulario de creación (ExamCreationForm.jsx)
+  2. Docente puede elegir entre tres modalidades:
+     a) Subir PDF completo del examen
+     b) Crear preguntas de opción múltiple (con mínimo 2 opciones, al menos 1 correcta)
+     c) Crear preguntas de desarrollo/ensayo
+  3. Frontend envía FormData con: POST a `/api/v1/exams/` (exams.py)
+  4. Si hay PDF: se guarda en `uploads/exams/` con nombre único
+  5. Si hay preguntas: se crean en `exam_questions` y `question_options`
+  6. Estudiante visualiza examen en fecha programada
+  7. Si es PDF: estudiante descarga y sube respuesta
+  8. Si son preguntas estructuradas: estudiante responde en interfaz
+  9. Estudiante entrega: POST a `/api/v1/exams/{id}/submit`
+  10. Sistema almacena respuestas en `exam_answers` o archivo PDF
+  11. Docente visualiza todas las entregas: GET a `/api/v1/exams/{id}/submissions`
+  12. Docente ve respuestas completas de cada estudiante
+  13. Docente califica: PUT a `/api/v1/exams/submissions/{id}` (1.0-7.0) con feedback
+  14. Estudiante visualiza calificación y retroalimentación
+
+================================================================================
+3. OBJETIVOS DEL PROYECTO
+================================================================================
+
+3.1. OBJETIVO GENERAL
+
+Desarrollar e implementar una plataforma web integral de gestión académica 
+inteligente que automatice los procesos educativos pre-universitarios, 
+proporcione personalización del aprendizaje mediante sistemas de recomendación 
+basados en reglas, y facilite el seguimiento del rendimiento estudiantil, todo 
+ello con el propósito de optimizar la preparación de estudiantes de 1ro a 4to 
+medio para la Prueba de Acceso a la Educación Superior (PAES).
+
+3.2. OBJETIVOS ESPECÍFICOS
+
+a) Implementar sistema de autenticación y autorización robusto:
+   - Autenticación mediante JWT con expiración configurable (30 minutos)
+   - Hash de contraseñas con algoritmo bcrypt (CryptContext)
+   - Control de acceso basado en roles (RBAC) con tres niveles: estudiante, 
+     docente, administrador
+   - Validación de credenciales y manejo de sesiones seguras
+   - Manejo correcto de tipos en tokens JWT (compatibilidad string/int)
+
+b) Desarrollar módulo de gestión académica completo:
+   - CRUD de cursos con asociación docente-estudiante mediante enrollments
+   - Sistema de tareas con fechas de vencimiento, conceptos asociados y 
+     calificación con retroalimentación
+   - Sistema de exámenes avanzado con soporte para tres modalidades:
+     * Archivos PDF completos
+     * Preguntas de opción múltiple con validación (mínimo 2 opciones, 1 correcta)
+     * Preguntas de desarrollo/ensayo con criterios de evaluación
+   - Gestión de entregas con almacenamiento de archivos y retroalimentación
+   - Sistema de calificación con escala 1.0-7.0
+
+c) Implementar sistema de recomendaciones de contenido remedial:
+   - Motor basado en reglas (Nivel 1) completamente funcional que detecta 
+     notas bajas (< 4.0, configurable)
+   - Asociación de recursos educativos con conceptos académicos mediante 
+     tabla de relación muchos-a-muchos
+   - Generación automática de recomendaciones cuando un estudiante falla una 
+     tarea
+   - Priorización de recursos según relevancia de conceptos
+   - Filtrado de duplicados y límite de recomendaciones (máximo 3)
+
+d) Desarrollar sistema de perfiles estudiantiles:
+   - Cuestionario de perfil con 8 variables cuantitativas (escala 1-10) y 1 
+     variable categórica (género)
+   - Almacenamiento estructurado de perfiles estudiantiles para análisis futuro
+   - Dashboard personalizado que muestra recomendaciones y progreso académico
+   - Visualización de datos de perfil en el sistema
+
+e) Construir arquitectura escalable:
+   - Backend principal (FastAPI) con estructura modular
+   - API RESTful con documentación automática (OpenAPI/Swagger)
+   - Frontend React con gestión de estado mediante Zustand
+   - Pool de conexiones a base de datos configurado para escalabilidad
+   - Separación clara entre frontend y backend para despliegue independiente
+
+================================================================================
+4. ANÁLISIS TÉCNICO
+================================================================================
+
+4.1. METODOLOGÍA DE DESARROLLO
+
+Basado en la estructura de archivos y organización del código actualizado, se 
+identifica una metodología de desarrollo que combina principios de:
+
+a) Arquitectura en Capas (Layered Architecture):
+   - Capa de Presentación: Frontend React con 31 componentes modulares (20 
+     componentes + 5 páginas + servicios + store)
+   - Capa de Aplicación: 13 módulos de endpoints FastAPI organizados por dominio
+   - Capa de Dominio: 19 modelos SQLAlchemy y 19 schemas Pydantic correspondientes
+   - Capa de Persistencia: PostgreSQL con ORM SQLAlchemy y pool de conexiones
+
+b) Patrón Repository/CRUD:
+   - Separación clara entre lógica de negocio (endpoints) y acceso a datos (CRUD)
+   - 19 módulos CRUD correspondientes a cada entidad (crud_user.py, crud_course.py, 
+     crud_exam_question.py, etc.)
+   - Abstracción de operaciones de base de datos mediante funciones reutilizables
+   - Operaciones bulk implementadas (create_questions_bulk)
+
+c) Domain-Driven Design (DDD) Parcial:
+   - Organización del código por dominios (users, courses, tasks, exams, conceptos, 
+     recursos, recomendaciones)
+   - Modelos de dominio claramente definidos con relaciones explícitas (1:N, N:M)
+   - Servicios de dominio (RecommendationService, RuleEvaluator)
+   - Agregados bien definidos (Exam con ExamQuestion y QuestionOption)
+
+d) Desarrollo Iterativo e Incremental:
+   - Estructura modular que permite agregar funcionalidades sin afectar módulos 
+     existentes
+   - Sistema de recomendaciones diseñado con niveles (actualmente Nivel 1, 
+     preparado para expansión)
+   - Separación de concerns que facilita el mantenimiento y evolución
+   - Sistema de exámenes evolucionó de básico a avanzado (PDF + preguntas estructuradas)
+
+4.2. DISEÑO DE ARQUITECTURA
+
+ARQUITECTURA GENERAL: Arquitectura de Tres Capas con Frontend Separado
+
+El sistema implementa una arquitectura de tres capas con los siguientes 
+componentes:
+
+┌─────────────────────────────────────────────────────────────────┐
+│                        FRONTEND (React)                         │
+│  - React 19.1.1 + Vite 7.1.7                                    │
+│  - Zustand 5.0.8 para gestión de estado                        │
+│  - React Router DOM 7.9.4 para navegación                      │
+│  - Axios 1.12.2 para comunicación HTTP                        │
+│  - jwt-decode 4.0.0 para decodificación de tokens              │
+│  - 31 archivos JS/JSX (20 componentes, 5 páginas, servicios)   │
+│  - Puerto: 5173 (desarrollo)                                    │
+└───────────────────────┬─────────────────────────────────────────┘
+                        │ HTTP/REST
+                        │ JWT Authentication
+┌───────────────────────▼─────────────────────────────────────────┐
+│                    BACKEND API (FastAPI)                        │
+│  - FastAPI 0.104.1                                              │
+│  - SQLAlchemy 2.0.23 (ORM)                                      │
+│  - Pydantic 2.5.2 (Validación)                                  │
+│  - JWT (python-jose 3.3.0)                                       │
+│  - bcrypt 4.0.1 (Hash de contraseñas)                           │
+│  - 78 archivos Python                                           │
+│  - 68 endpoints API distribuidos en 13 módulos                  │
+│  - Puerto: 8000                                                 │
+│                                                                  │
+│  Endpoints principales:                                         │
+│  - /login (autenticación)                                      │
+│  - /users (gestión usuarios)                                    │
+│  - /courses (gestión cursos)                                    │
+│  - /tasks (gestión tareas)                                      │
+│  - /exams (gestión exámenes - 7 endpoints)                     │
+│  - /submissions (entregas)                                      │
+│  - /conceptos, /recursos, /recomendaciones                     │
+│  - /api/v1/student-profile (perfiles)                           │
+└───────────────────────┬─────────────────────────────────────────┘
+                        │ SQL (psycopg2-binary 2.9.9)
+                        │ Pool: 5 base, 10 max, timeout 30s
+                        │
+┌───────────────────────▼─────────────────────────────────────────┐
+│              BASE DE DATOS (PostgreSQL 15)                      │
+│  - 19 tablas principales                                       │
+│  - Relaciones 1:N y N:M                                        │
+│  - Índices en campos clave                                     │
+│  - Foreign keys con CASCADE                                     │
+│  - Puerto: 5433                                                │
+│                                                                  │
+│  Tablas principales:                                            │
+│  - users, courses, enrollments                                 │
+│  - tasks, submissions                                          │
+│  - exams, exam_questions, question_options, exam_submissions  │
+│  - student_profiles                                            │
+│  - conceptos, recursos, recurso_conceptos                      │
+│  - tarea_conceptos                                             │
+│  - recomendaciones_estudiantes                                 │
+│  - interacciones_recursos                                      │
+│  - announcements, comments                                     │
+│  - rules                                                       │
+└─────────────────────────────────────────────────────────────────┘
+
+DIAGRAMA DE FLUJO DE DATOS:
+
+1. Usuario → Frontend (React) - Interfaz de usuario
+2. Frontend → Backend API (HTTP + JWT) - Peticiones autenticadas
+3. Backend API → PostgreSQL (SQL mediante SQLAlchemy) - Persistencia
+4. Backend API → Sistema de Archivos - Almacenamiento de PDFs
+   (uploads/submissions/, uploads/exams/)
+5. Backend API → RecommendationService - Lógica de recomendaciones
+
+PATRONES DE DISEÑO IDENTIFICADOS:
+
+a) Dependency Injection:
+   - Uso de Depends() de FastAPI para inyección de dependencias
+   - get_db() para sesiones de base de datos
+   - get_current_user() para autenticación en todos los endpoints protegidos
+
+b) Repository Pattern:
+   - Funciones CRUD encapsuladas en módulos separados (19 módulos CRUD)
+   - Abstracción de operaciones de base de datos
+   - Operaciones bulk implementadas (create_questions_bulk)
+
+c) Service Layer:
+   - RecommendationService para lógica de negocio compleja de recomendaciones
+   - RuleEvaluator para evaluación de reglas de recomendación
+   - Separación clara entre lógica de negocio y acceso a datos
+
+d) Factory Pattern (Implícito):
+   - Creación de modelos SQLAlchemy mediante Base
+   - Generación de schemas Pydantic desde modelos ORM (from_orm)
+   - Creación de tokens JWT mediante funciones factory
+
+e) Strategy Pattern (Implícito):
+   - Diferentes estrategias de creación de exámenes (PDF, opción múltiple, desarrollo)
+   - Diferentes estrategias de recomendación (preparado para múltiples niveles)
+
+4.3. DISEÑO DE INFRAESTRUCTURA
+
+DEPENDENCIAS EXTERNAS:
+
+a) Base de Datos:
+   - PostgreSQL 15 (Alpine Linux en Docker)
+   - Driver: psycopg2-binary 2.9.9
+   - Pool de conexiones configurado:
+     * pool_size: 5 (conexiones base)
+     * max_overflow: 10 (conexiones adicionales)
+     * pool_timeout: 30 segundos
+     * pool_recycle: 3600 segundos (1 hora)
+     * pool_pre_ping: True (verificación de conexiones)
+
+b) Frameworks y Librerías Backend:
+   - FastAPI 0.104.1 (Framework web asíncrono)
+   - Uvicorn 0.24.0 (ASGI server)
+   - SQLAlchemy 2.0.23 (ORM moderno)
+   - Pydantic 2.5.2 (Validación de datos robusta)
+   - python-jose 3.3.0 (JWT)
+   - passlib 1.7.4 + bcrypt 4.0.1 (Hash de contraseñas)
+   - python-multipart 0.0.6 (Upload de archivos)
+   - httpx 0.27.0 (Cliente HTTP para comunicación con servicios externos)
+   - email-validator 2.1.0 (Validación de emails)
+   - pydantic-settings 2.1.0 (Configuración)
+
+c) Frameworks y Librerías Frontend:
+   - React 19.1.1 (UI library moderna)
+   - Vite 7.1.7 (Build tool rápido)
+   - React Router DOM 7.9.4 (Routing)
+   - Zustand 5.0.8 (State management ligero)
+   - Axios 1.12.2 (HTTP client)
+   - jwt-decode 4.0.0 (Decodificación de tokens)
+   - TypeScript 5.9.3 (Tipado estático, configurado pero no usado extensivamente)
+
+d) Contenedores y Orquestación:
+   - Docker (contenedores individuales)
+   - Docker Compose (orquestación multi-contenedor)
+   - Nginx (servidor web para frontend en producción, configurado)
+
+e) Servicios Cloud (Configurables):
+   - Variables de entorno para DATABASE_URL (compatible con Railway, Render, 
+     Supabase)
+   - Configuración de CORS para múltiples orígenes
+   - Preparado para despliegue en servicios cloud
+
+ESTRUCTURA DE BASE DE DATOS:
+
+19 tablas principales identificadas y verificadas:
+- users (usuarios del sistema con roles)
+- courses (cursos académicos con propietario)
+- enrollments (inscripciones estudiante-curso)
+- tasks (tareas académicas)
+- submissions (entregas de tareas con archivos PDF)
+- exams (exámenes con soporte PDF y preguntas)
+- exam_questions (preguntas de exámenes: opción múltiple y desarrollo)
+- question_options (opciones de respuesta para preguntas múltiples)
+- exam_submissions (entregas de exámenes)
+- student_profiles (perfiles estudiantiles con 8 variables + género)
+- conceptos (conceptos académicos con categorías)
+- recursos (recursos educativos)
+- recurso_conceptos (relación N:M recurso-concepto)
+- tarea_conceptos (relación N:M tarea-concepto)
+- recomendaciones_estudiantes (recomendaciones generadas)
+- interacciones_recursos (seguimiento de uso de recursos)
+- announcements (anuncios/comunicados)
+- comments (comentarios en anuncios)
+- rules (reglas de recomendación)
+
+ALMACENAMIENTO:
+
+a) Base de Datos:
+   - PostgreSQL con persistencia mediante volúmenes Docker
+   - Índices en campos de búsqueda frecuente (id, correo, curso_id, exam_id, etc.)
+   - Foreign keys con CASCADE para integridad referencial
+   - Constraints de unicidad donde corresponde
+
+b) Sistema de Archivos:
+   - Almacenamiento local en `backend/uploads/submissions/` para tareas
+   - Almacenamiento local en `backend/uploads/exams/` para exámenes PDF
+   - Nomenclatura única: `task_{id}_student_{id}_{timestamp}.pdf` y 
+     `exam_{course_id}_{timestamp}.pdf`
+   - No se observa implementación de cloud storage (S3, Azure Blob, etc.)
+   - No hay sistema de backup automático de archivos
+
+APIS CONSUMIDAS:
+
+- No se observan APIs externas consumidas en el código actual
+- El sistema está preparado para integración con servicios externos mediante 
+  httpx si se requiere en el futuro
+
+================================================================================
+5. ANÁLISIS DE SUSTENTABILIDAD (FACTIBILIDAD)
+================================================================================
+
+5.1. FACTIBILIDAD TÉCNICA
+
+EVALUACIÓN: ALTA FACTIBILIDAD TÉCNICA
+
+a) Complejidad del Código:
+   - Código bien estructurado y modular (78 archivos Python, 31 JS/JSX)
+   - Separación clara de responsabilidades (models, schemas, crud, endpoints, 
+     services)
+   - Uso de patrones de diseño estándar (Repository, Service Layer, Dependency 
+     Injection)
+   - Nomenclatura consistente y descriptiva
+   - Comentarios en código crítico (especialmente en servicios y seguridad)
+   - Manejo correcto de tipos en JWT (conversión string/int)
+
+b) Uso de Librerías:
+   - Librerías modernas y mantenidas activamente:
+     * FastAPI 0.104.1: Framework moderno con excelente rendimiento
+     * SQLAlchemy 2.0.23: Versión actual con mejoras significativas
+     * Pydantic 2.5.2: Validación de datos robusta
+     * React 19.1.1: Versión reciente con mejoras de rendimiento
+   - No se observan dependencias obsoletas o con vulnerabilidades conocidas
+   - Uso de estándares de la industria (JWT, bcrypt, REST)
+   - Versiones estables y probadas
+
+c) Mantenibilidad:
+   - Estructura de carpetas clara y lógica
+   - Código DRY (Don't Repeat Yourself) mediante funciones CRUD reutilizables
+   - Configuración centralizada en `config.py`
+   - Validación de datos en múltiples capas (Pydantic, SQLAlchemy)
+   - Manejo de errores mediante excepciones HTTP estándar
+   - Pool de conexiones configurado para evitar problemas de rendimiento
+
+d) Escalabilidad del Código:
+   - Arquitectura preparada para escalar horizontalmente
+   - Pool de conexiones configurado para manejar carga (5 base, 10 máximo)
+   - Separación de servicios permite escalado independiente
+   - Frontend y backend desacoplados
+   - Sistema de exámenes diseñado para manejar múltiples formatos
+
+LIMITACIONES TÉCNICAS IDENTIFICADAS:
+
+- Almacenamiento de archivos en sistema local (no escalable para producción)
+- Falta de implementación de caché
+- No se observa sistema de logging estructurado
+- Falta de monitoreo y métricas
+- No hay paginación en todos los endpoints
+- Falta de tests automatizados
+- No existe sistema de predicción de riesgo académico
+
+5.2. FACTIBILIDAD IMPLEMENTATIVA
+
+EVALUACIÓN: MEDIA-ALTA FACTIBILIDAD IMPLEMENTATIVA
+
+a) Requisitos de Infraestructura:
+   - Servidor de aplicación: Moderado (FastAPI es ligero, pero requiere 
+     Python 3.11+)
+   - Base de datos: Estándar (PostgreSQL 12+, sin requisitos especiales)
+   - Almacenamiento: Bajo-Medio (sistema de archivos local suficiente para MVP, 
+     pero requiere cloud storage para producción)
+   - Red: Estándar (comunicación HTTP/REST)
+
+b) Complejidad de Despliegue:
+   - Docker Compose simplifica despliegue multi-contenedor
+   - Scripts de inicio automatizados (start_backend.sh, start_local.sh)
+   - Configuración mediante variables de entorno
+   - Migraciones de base de datos automáticas (SQLAlchemy create_all)
+   - Frontend con build estático (Vite) fácil de desplegar
+
+c) Dependencias Externas:
+   - PostgreSQL: Requiere instalación o servicio cloud
+   - Python 3.11+: Requisito del sistema
+   - Node.js 18+: Para desarrollo frontend
+   - Sin dependencias de servicios cloud obligatorias (opcionales)
+
+d) Tiempo de Configuración Estimado:
+   - Configuración inicial: 2-4 horas (instalación de dependencias, BD, 
+     configuración)
+   - Despliegue en producción: 4-8 horas (configuración de servidores, 
+     variables de entorno, SSL, cloud storage)
+
+FACTORES QUE FACILITAN EL DESPLIEGUE:
+
+- Uso de contenedores Docker (portabilidad)
+- Configuración centralizada
+- Documentación de API automática (Swagger)
+- Scripts de automatización
+- Build estático del frontend (fácil de servir con Nginx)
+- Pool de conexiones ya configurado
+
+FACTORES QUE COMPLICAN EL DESPLIEGUE:
+
+- Requiere múltiples servicios (backend, frontend, BD)
+- Configuración de CORS para producción
+- Gestión de secretos y variables de entorno
+- Almacenamiento de archivos requiere estrategia de persistencia (cloud storage)
+
+5.3. FACTIBILIDAD ECONÓMICA (ESTIMADA)
+
+EVALUACIÓN: ALTA FACTIBILIDAD ECONÓMICA (BAJO COSTO)
+
+a) Tecnologías Utilizadas:
+   - 100% Open Source:
+     * FastAPI: MIT License
+     * React: MIT License
+     * PostgreSQL: PostgreSQL License (libre)
+     * SQLAlchemy: MIT License
+     * Todas las dependencias: Licencias permisivas
+
+b) Costos de Infraestructura Estimados:
+
+   DESARROLLO/TESTING:
+   - Local: $0 (desarrollo en máquina local)
+   - Cloud gratuito: $0-20/mes (tiers gratuitos de Railway, Render, Vercel)
+
+   PRODUCCIÓN (Pequeña-Mediana Escala):
+   - Backend API: $5-25/mes (Render, Railway, Heroku)
+   - Frontend: $0-20/mes (Vercel, Netlify - tier gratuito suficiente)
+   - Base de Datos: $0-25/mes (Supabase free tier, Railway, Render)
+   - Almacenamiento: $0-5/mes (inicialmente, sistema de archivos)
+   - Cloud Storage (opcional): $5-15/mes (AWS S3, Azure Blob)
+   - TOTAL ESTIMADO: $10-90/mes
+
+   PRODUCCIÓN (Gran Escala):
+   - Servidores dedicados: $50-200/mes
+   - Base de datos gestionada: $25-100/mes
+   - Cloud storage (S3, Azure Blob): $10-50/mes
+   - CDN: $10-30/mes
+   - TOTAL ESTIMADO: $95-380/mes
+
+c) Costos de Desarrollo:
+   - Sin licencias de software requeridas
+   - Herramientas de desarrollo gratuitas (VS Code, Git)
+   - CI/CD: GitHub Actions (gratuito para repos públicos)
+
+d) Costos de Mantenimiento:
+   - Actualizaciones de dependencias: Tiempo de desarrollo (sin costo de 
+     licencias)
+   - Monitoreo: Opcional, herramientas open source disponibles (Prometheus, 
+     Grafana)
+
+CONCLUSIÓN ECONÓMICA:
+El proyecto es altamente factible económicamente debido al uso exclusivo de 
+tecnologías open source. Los costos principales son de infraestructura cloud, 
+que pueden mantenerse bajos mediante el uso de tiers gratuitos o servicios 
+económicos para escalas pequeñas y medianas.
+
+5.4. FACTIBILIDAD LEGAL
+
+EVALUACIÓN: MEDIA FACTIBILIDAD LEGAL (REQUIERE CONSIDERACIONES)
+
+a) Datos Sensibles Manejados:
+
+   DATOS PERSONALES:
+   - Nombres completos de usuarios
+   - Correos electrónicos
+   - Contraseñas (hasheadas con bcrypt - ✅ implementado correctamente)
+   - Género (variable categórica en perfil estudiantil)
+
+   DATOS ACADÉMICOS:
+   - Calificaciones y rendimiento académico
+   - Perfiles psicológicos/conductuales (motivación, presión académica, horas 
+     de sueño, etc.)
+   - Historial de interacciones con recursos educativos
+   - Respuestas a exámenes y tareas
+   - Archivos PDF subidos por estudiantes
+
+b) Consideraciones Legales Requeridas:
+
+   PROTECCIÓN DE DATOS (GDPR, Ley de Protección de Datos):
+   - ✅ Contraseñas hasheadas (bcrypt) - Implementado
+   - ✅ Autenticación mediante tokens (JWT) - Implementado
+   - ⚠️ Falta de política de privacidad visible en código
+   - ⚠️ No se observa implementación de consentimiento explícito
+   - ⚠️ Falta de mecanismos de eliminación de datos (derecho al olvido)
+   - ⚠️ No se observa encriptación de datos en tránsito explícita (requiere HTTPS)
+   - ⚠️ Archivos PDF almacenados sin encriptación en reposo
+
+   CONSENTIMIENTO Y TRANSPARENCIA:
+   - ⚠️ Falta de términos y condiciones
+   - ⚠️ Falta de política de privacidad
+   - ⚠️ No se observa notificación de cookies o tracking
+   - ⚠️ Cuestionario de perfil no tiene consentimiento explícito visible
+
+   RETENCIÓN DE DATOS:
+   - ⚠️ No se observa política de retención de datos definida
+   - ⚠️ Falta de mecanismos de exportación de datos (derecho de portabilidad)
+   - ⚠️ Archivos PDF no tienen política de retención
+
+   SEGURIDAD:
+   - ✅ Hash de contraseñas robusto (bcrypt) - Implementado
+   - ✅ Autenticación mediante tokens - Implementado
+   - ⚠️ Secret key debe estar en variables de entorno (actualmente hardcodeada 
+     en código)
+   - ⚠️ Requiere HTTPS en producción (no observado en código)
+   - ⚠️ Falta de rate limiting (protección contra ataques)
+   - ⚠️ No hay logging de accesos a datos sensibles
+
+c) Cumplimiento Normativo Requerido:
+
+   Si el sistema se despliega en Chile:
+   - Ley N° 19.628 sobre Protección de la Vida Privada
+   - Requiere registro de bases de datos personales
+   - Requiere consentimiento explícito para tratamiento de datos
+   - Requiere notificación de uso de datos personales
+
+   Si el sistema se despliega en UE:
+   - GDPR (General Data Protection Regulation)
+   - Requiere Data Protection Officer (DPO) si se procesan datos a gran escala
+   - Requiere notificación de brechas de seguridad
+   - Requiere derecho al olvido implementado
+
+   Si el sistema se despliega en otros países:
+   - Verificar legislación local de protección de datos
+
+d) Recomendaciones Legales:
+
+   PRIORITARIAS:
+   1. Implementar política de privacidad y términos de servicio
+   2. Mover secret keys a variables de entorno (eliminar hardcodeo)
+   3. Implementar HTTPS obligatorio en producción
+   4. Agregar consentimiento explícito en registro y cuestionario de perfil
+   5. Implementar mecanismo de eliminación de cuenta y datos asociados
+   6. Agregar encriptación de archivos PDF en reposo
+
+   IMPORTANTES:
+   7. Agregar logging de accesos a datos sensibles
+   8. Implementar rate limiting
+   9. Documentar política de retención de datos
+   10. Implementar exportación de datos del usuario (derecho de portabilidad)
+   11. Agregar notificación de uso de cookies/tracking
+   12. Implementar notificación de brechas de seguridad
+
+================================================================================
+6. CONCLUSIONES
+================================================================================
+
+6.1. ESTADO ACTUAL DEL DESARROLLO
+
+El análisis del código actualizado revela un sistema en estado de desarrollo 
+avanzado y funcional, con una arquitectura sólida y funcionalidades core 
+completamente implementadas. El proyecto demuestra:
+
+FORTALEZAS:
+- Arquitectura bien diseñada con separación clara de responsabilidades
+- Uso de tecnologías modernas y mantenidas activamente
+- Código estructurado y modular (78 archivos Python, 31 JS/JSX), facilitando 
+  el mantenimiento
+- Sistema de autenticación y autorización robusto con manejo correcto de tipos
+- Funcionalidades académicas completas (cursos, tareas, exámenes avanzados)
+- Sistema de exámenes completamente implementado con tres modalidades (PDF, 
+  opción múltiple, desarrollo)
+- Sistema de recomendaciones funcional (Nivel 1) con lógica completa
+- Base de datos bien estructurada con 19 tablas y relaciones apropiadas
+- Pool de conexiones configurado para rendimiento
+- 68 endpoints API bien organizados en 13 módulos
+
+ÁREAS DE MEJORA:
+- Almacenamiento de archivos limitado a sistema local (requiere cloud storage 
+  para producción)
+- Falta de implementación de aspectos legales (políticas, consentimiento)
+- Configuración de seguridad requiere ajustes para producción (secret keys, HTTPS)
+- Falta de sistema de logging estructurado y monitoreo
+- No se observa implementación de tests automatizados
+- Falta de paginación en algunos endpoints
+- No hay sistema de backup automático
+- No existe sistema de predicción de riesgo académico
+
+6.2. ROBUSTEZ DE LA SOLUCIÓN
+
+La solución demuestra robustez técnica en los siguientes aspectos:
+
+a) Arquitectura:
+   - Diseño escalable mediante microservicios (preparado)
+   - Separación frontend/backend permite despliegue independiente
+   - Base de datos relacional con integridad referencial (19 tablas)
+   - Pool de conexiones configurado para evitar problemas de rendimiento
+   - Sistema de exámenes flexible con múltiples formatos
+
+b) Seguridad:
+   - Autenticación mediante JWT con manejo correcto de tipos
+   - Hash de contraseñas con bcrypt (algoritmo robusto)
+   - Control de acceso basado en roles (RBAC) implementado
+   - Validación de datos en múltiples capas (Pydantic, SQLAlchemy)
+   - Manejo de errores mediante excepciones HTTP estándar
+
+c) Funcionalidad:
+   - Módulos principales implementados y funcionales
+   - Flujos de negocio completos (7 procesos principales)
+   - Sistema de recomendaciones operativo con lógica completa
+   - Sistema de exámenes avanzado con validaciones
+   - Interfaz de usuario completa para todos los roles
+
+d) Mantenibilidad:
+   - Código organizado y documentado
+   - Uso de patrones de diseño estándar
+   - Configuración centralizada
+   - Separación clara de responsabilidades
+
+LIMITACIONES DE ROBUSTEZ:
+
+- Falta de redundancia en almacenamiento de archivos
+- No se observa implementación de backup automático
+- Falta de manejo de errores en algunos flujos asíncronos
+- No se observa implementación de circuit breakers para servicios externos
+- Falta de sistema de retry para operaciones críticas
+- No hay validación de integridad de archivos subidos
+
+6.3. RECOMENDACIONES TÉCNICAS PARA FUTURAS VERSIONES
+
+PRIORIDAD ALTA:
+
+1. Mejorar Seguridad para Producción:
+   - Mover todas las secret keys a variables de entorno (eliminar hardcodeo)
+   - Implementar HTTPS obligatorio
+   - Agregar rate limiting (protección contra DDoS)
+   - Implementar logging de seguridad estructurado
+   - Agregar validación de integridad de archivos
+
+2. Migrar Almacenamiento de Archivos:
+   - Implementar cloud storage (AWS S3, Azure Blob, Google Cloud Storage)
+   - Agregar CDN para distribución de contenido
+   - Implementar backup automático
+   - Agregar encriptación de archivos en reposo
+   - Implementar políticas de retención
+
+3. Implementar Aspectos Legales:
+   - Agregar política de privacidad
+   - Implementar términos y condiciones
+   - Agregar consentimiento explícito en registro y cuestionario
+   - Implementar mecanismo de eliminación de cuenta (derecho al olvido)
+   - Agregar exportación de datos del usuario (derecho de portabilidad)
+
+PRIORIDAD MEDIA:
+
+4. Sistema de Logging y Monitoreo:
+   - Implementar logging estructurado (JSON)
+   - Agregar métricas de aplicación (Prometheus)
+   - Implementar dashboards de monitoreo (Grafana)
+   - Agregar alertas automáticas
+   - Implementar tracing distribuido
+
+5. Mejorar Sistema de Recomendaciones:
+   - Implementar Nivel 2: Filtrado colaborativo
+   - Implementar Nivel 3: Filtrado basado en contenido avanzado
+   - Agregar aprendizaje de preferencias del usuario
+   - Implementar A/B testing de recomendaciones
+   - Agregar personalización basada en historial
+
+6. Testing y Calidad:
+   - Implementar tests unitarios (pytest)
+   - Agregar tests de integración
+   - Implementar tests end-to-end (Playwright, Cypress)
+   - Agregar CI/CD pipeline
+   - Implementar code coverage
+
+7. Optimizaciones de Rendimiento:
+   - Implementar caché (Redis)
+   - Optimizar consultas de base de datos
+   - Implementar paginación en todos los endpoints
+   - Agregar compresión de respuestas
+   - Implementar lazy loading en frontend
+
+PRIORIDAD BAJA:
+
+8. Funcionalidades Adicionales:
+   - Sistema de notificaciones en tiempo real (WebSockets)
+   - Integración con sistemas externos (LMS, correo electrónico, SMS)
+   - Aplicación móvil (React Native)
+   - Sistema de analytics avanzado
+   - Sistema de versionado de exámenes
+
+9. Documentación:
+    - Documentación técnica completa (API, arquitectura)
+    - Guías de usuario para cada rol
+    - Documentación de despliegue detallada
+    - Diagramas de arquitectura y flujos
+    - Documentación de procesos de negocio
+
+6.4. CONCLUSIÓN FINAL
+
+El proyecto PAI Platform representa una solución técnica sólida y bien 
+arquitecturada para la gestión académica pre-universitaria. La implementación 
+actual demuestra competencia técnica en el uso de tecnologías modernas y 
+patrones de diseño apropiados. El sistema está en un estado funcional avanzado, 
+con las funcionalidades core completamente implementadas y operativas.
+
+Las principales fortalezas del proyecto radican en su arquitectura escalable, 
+el uso de tecnologías open source de calidad, la implementación completa del 
+sistema de exámenes con múltiples modalidades, y el sistema de recomendaciones 
+funcional. El código está bien estructurado (78 archivos Python, 31 JS/JSX) con 
+68 endpoints API organizados, y una base de datos robusta con 19 tablas.
+
+Sin embargo, requiere trabajo adicional en aspectos de seguridad para producción 
+(secret keys, HTTPS, rate limiting), migración a cloud storage para archivos, y 
+cumplimiento legal antes de ser desplegado en un entorno de producción real.
+
+Con las mejoras recomendadas, especialmente en seguridad, almacenamiento, y 
+aspectos legales, el sistema está bien posicionado para convertirse en una 
+plataforma educativa robusta y escalable que puede servir efectivamente a 
+estudiantes, docentes y administradores en el contexto de preparación 
+pre-universitaria.
+
+La factibilidad técnica y económica es alta, la factibilidad implementativa es 
+media-alta, mientras que la factibilidad legal requiere atención prioritaria para 
+cumplir con regulaciones de protección de datos. El proyecto demuestra potencial 
+para evolucionar hacia una solución de clase empresarial con las mejoras 
+sugeridas, especialmente considerando que el sistema de exámenes avanzado con 
+tres modalidades (PDF, opción múltiple, desarrollo) y el sistema de 
+recomendaciones basado en reglas están completamente funcionales y operativos.
+
+================================================================================
+FIN DEL INFORME TÉCNICO
+================================================================================

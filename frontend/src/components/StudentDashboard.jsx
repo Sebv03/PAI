@@ -3,6 +3,7 @@ import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import apiClient from '../services/api';
 import CourseBrowser from './CourseBrowser';
+import RecomendacionesStudent from './RecomendacionesStudent';
 
 const StudentDashboard = ({ user }) => {
     const [enrolledCourses, setEnrolledCourses] = useState([]);
@@ -36,6 +37,11 @@ const StudentDashboard = ({ user }) => {
             <div style={{ marginBottom: '2rem' }}>
                 <h2>Panel de Estudiante</h2>
                 <p style={{ color: 'var(--text-secondary)', marginBottom: 0 }}>Gestiona tus cursos y entrega tus tareas</p>
+            </div>
+            
+            {/* Recomendaciones de Recursos */}
+            <div style={{ marginBottom: '2rem' }}>
+                <RecomendacionesStudent studentId={user?.id} />
             </div>
             
             {/* Lista de Cursos Inscritos */}

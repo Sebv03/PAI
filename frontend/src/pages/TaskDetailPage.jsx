@@ -16,7 +16,7 @@ const TaskDetailPage = () => {
     const [submitting, setSubmitting] = useState(false);
     const [submitError, setSubmitError] = useState(null);
     const [submitSuccess, setSubmitSuccess] = useState(false);
-    
+
     // Estados para el formulario de entrega
     const [selectedFile, setSelectedFile] = useState(null);
     const [textContent, setTextContent] = useState('');
@@ -124,12 +124,12 @@ const TaskDetailPage = () => {
     // Descargar PDF de entrega
     const handleDownloadPDF = async () => {
         if (!submission?.file_path) return;
-        
+
         try {
             const response = await apiClient.get(`/submissions/${submission.id}/download`, {
                 responseType: 'blob',
             });
-            
+
             // Crear un enlace temporal para descargar
             const url = window.URL.createObjectURL(new Blob([response.data]));
             const link = document.createElement('a');
@@ -200,7 +200,7 @@ const TaskDetailPage = () => {
                 <h1 style={{ fontSize: '2em', fontWeight: 'bold', marginBottom: '10px', color: '#007bff' }}>
                     {task.titulo || task.title}
                 </h1>
-                
+
                 {(task.descripcion || task.description) && (
                     <p style={{ fontSize: '1.1em', color: '#555', marginBottom: '15px' }}>
                         {task.descripcion || task.description}
@@ -208,8 +208,8 @@ const TaskDetailPage = () => {
                 )}
 
                 <div style={{ display: 'flex', gap: '15px', marginTop: '20px', flexWrap: 'wrap' }}>
-                    <div style={{ 
-                        padding: '10px 15px', 
+                    <div style={{
+                        padding: '10px 15px',
                         backgroundColor: isOverdue ? '#dc3545' : isDueSoon ? '#ffc107' : '#28a745',
                         color: 'white',
                         borderRadius: '5px',
@@ -224,10 +224,10 @@ const TaskDetailPage = () => {
                         })}
                     </div>
                     {isOverdue && (
-                        <span style={{ 
-                            padding: '10px 15px', 
-                            backgroundColor: '#dc3545', 
-                            color: 'white', 
+                        <span style={{
+                            padding: '10px 15px',
+                            backgroundColor: '#dc3545',
+                            color: 'white',
                             borderRadius: '5px',
                             fontSize: '0.9em'
                         }}>
@@ -288,24 +288,25 @@ const TaskDetailPage = () => {
 
                         {/* Mostrar Calificación si existe */}
                         {submission.grade !== null && submission.grade !== undefined && (
-                            <div style={{ 
-                                marginTop: '15px', 
-                                padding: '15px', 
-                                backgroundColor: submission.grade >= 4.0 ? '#d4edda' : '#f8d7da',
-                                border: `2px solid ${submission.grade >= 4.0 ? '#28a745' : '#dc3545'}`,
-                                borderRadius: '8px'
+                            <div style={{
+                                marginTop: '15px',
+                                padding: '15px',
+                                backgroundColor: submission.grade >= 60 ? '#d4edda' : 'var(--danger)',
+                                border: `2px solid ${submission.grade >= 60 ? '#28a745' : '#dc3545'}`,
+                                borderRadius: '8px',
+                                color: submission.grade >= 60 ? 'inherit' : 'white'
                             }}>
-                                <h4 style={{ fontWeight: 'bold', marginBottom: '10px', color: submission.grade >= 4.0 ? '#155724' : '#721c24' }}>
-                                    Calificación: {submission.grade.toFixed(1)} / 7.0
+                                <h4 style={{ fontWeight: 'bold', marginBottom: '10px', color: submission.grade >= 60 ? '#155724' : 'white' }}>
+                                    Calificación: {submission.grade.toFixed(1)} / 100
                                 </h4>
                                 {submission.feedback && (
                                     <div style={{ marginTop: '10px' }}>
-                                        <strong style={{ fontSize: '0.9em', color: submission.grade >= 4.0 ? '#155724' : '#721c24' }}>
+                                        <strong style={{ fontSize: '0.9em', color: submission.grade >= 60 ? '#155724' : 'white' }}>
                                             Feedback del docente:
                                         </strong>
-                                        <p style={{ 
-                                            fontSize: '0.9em', 
-                                            color: submission.grade >= 4.0 ? '#155724' : '#721c24',
+                                        <p style={{
+                                            fontSize: '0.9em',
+                                            color: submission.grade >= 60 ? '#155724' : 'white',
                                             margin: '5px 0 0 0',
                                             lineHeight: '1.5'
                                         }}>

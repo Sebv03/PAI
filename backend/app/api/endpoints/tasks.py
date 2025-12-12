@@ -55,6 +55,10 @@ async def create_new_task(
         )
 
     task = crud_task.create_task(db, task_in=task_in, course_id=task_in.course_id)
+    
+    # Nota: Los conceptos se asociarán en un endpoint separado POST /tasks/{task_id}/conceptos
+    # para mantener la separación de responsabilidades
+    
     return task
 
 # ----------------- Endpoint para obtener una tarea por ID -----------------

@@ -7,6 +7,7 @@ import TaskCreationForm from '../components/TaskCreationForm';
 import SubmissionsList from '../components/SubmissionsList';
 import EnrolledStudentsTable from '../components/EnrolledStudentsTable';
 import ForumSection from '../components/ForumSection';
+import ExamsList from '../components/ExamsList';
 
 const CourseDetail = () => {
     const { id } = useParams(); // Obtiene el ID del curso de la URL
@@ -27,7 +28,7 @@ const CourseDetail = () => {
         try {
             const courseResponse = await apiClient.get(`/courses/${id}`);
             setCourse(courseResponse.data);
-            
+
             // Verificar si el usuario actual es el propietario del curso
             if (user && user.id === (courseResponse.data.propietario_id || courseResponse.data.owner_id)) {
                 setIsOwner(true);
@@ -53,7 +54,7 @@ const CourseDetail = () => {
             setError(err.response?.data?.detail || "No se pudo cargar el curso.");
             // Si el curso no existe o no hay permisos, redirigir
             if (err.response?.status === 404 || err.response?.status === 403) {
-                 navigate('/dashboard'); // O a una página de "no encontrado/permiso"
+                navigate('/dashboard'); // O a una página de "no encontrado/permiso"
             }
         } finally {
             setLoading(false);
@@ -83,7 +84,7 @@ const CourseDetail = () => {
             </div>
         );
     }
-    
+
     if (error) {
         return (
             <div className="container" style={{ paddingTop: '2rem', paddingBottom: '2rem' }}>
@@ -93,7 +94,7 @@ const CourseDetail = () => {
             </div>
         );
     }
-    
+
     if (!course) {
         return (
             <div className="container" style={{ paddingTop: '2rem', paddingBottom: '2rem' }}>
@@ -104,8 +105,8 @@ const CourseDetail = () => {
 
     return (
         <div className="container" style={{ paddingTop: '2rem', paddingBottom: '2rem' }}>
-            <button 
-                onClick={() => navigate('/dashboard')} 
+            <button
+                onClick={() => navigate('/dashboard')}
                 className="btn btn-secondary"
                 style={{ marginBottom: '1.5rem' }}
             >
@@ -132,16 +133,24 @@ const CourseDetail = () => {
                     )}
                 </div>
             </div>
-            
+
             {/* Layout de dos columnas: Tareas a la izquierda, Estudiantes a la derecha (solo para docentes) */}
-            <div className="course-detail-layout" style={{ 
-                display: 'grid', 
-                gridTemplateColumns: isOwner && ((user.rol || user.role)?.toLowerCase() === 'docente') ? '1fr 350px' : '1fr', 
-                gap: '2rem', 
-                alignItems: 'start' 
+            <div className="course-detail-layout" style={{
+                display: 'grid',
+                gridTemplateColumns: isOwner && ((user.rol || user.role)?.toLowerCase() === 'docente') ? '1fr 350px' : '1fr',
+                gap: '2rem',
+                alignItems: 'start'
             }}>
                 {/* Columna izquierda: Tareas */}
                 <div>
+                    {/* Exams Section */}
+                    <div className="mb-lg">
+                        <ExamsList
+                            courseId={course.id}
+                            isTeacher={isOwner && (user.rol || user.role)?.toLowerCase() === 'docente'}
+                        />
+                    </div>
+
                     {/* Solo el docente propietario puede ver y crear tareas aquí */}
                     {isOwner && ((user.rol || user.role)?.toLowerCase() === 'docente') && (
                         <div className="card mb-lg bg-gradient-blue" style={{ borderColor: '#bfdbfe' }}>
@@ -181,10 +190,10 @@ const CourseDetail = () => {
                                 {tasks.map(task => {
                                     const isExpanded = expandedTasks.has(task.id);
                                     const dueDate = new Date(task.fecha_limite || task.due_date);
-                                    
+
                                     return (
-                                        <div 
-                                            key={task.id} 
+                                        <div
+                                            key={task.id}
                                             className="card"
                                         >
                                             <div className="flex justify-between items-start" style={{ marginBottom: '0.75rem' }}>
@@ -235,10 +244,10 @@ const CourseDetail = () => {
                                                     )}
                                                 </div>
                                             </div>
-                                            
+
                                             {isExpanded && isOwner && (user.rol || user.role) === 'docente' && (
-                                                <SubmissionsList 
-                                                    taskId={task.id} 
+                                                <SubmissionsList
+                                                    taskId={task.id}
                                                     onGradeUpdated={() => {
                                                         // Opcional: recargar datos si es necesario
                                                     }}
@@ -262,8 +271,8 @@ const CourseDetail = () => {
 
             {/* Sección de Foro / Comunicados */}
             <div style={{ marginTop: '2rem' }}>
-                <ForumSection 
-                    courseId={course.id} 
+                <ForumSection
+                    courseId={course.id}
                     isOwner={isOwner}
                     userRole={(user?.rol || user?.role)?.toLowerCase()}
                 />

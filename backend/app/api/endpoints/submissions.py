@@ -213,14 +213,47 @@ async def update_existing_submission(
         )
     
     # Validar que la nota esté en el rango válido (1.0 a 7.0)
+    # Validar que la nota esté en el rango válido (0 a 100)
     if submission_in.grade is not None:
-        if submission_in.grade < 1.0 or submission_in.grade > 7.0:
+        if submission_in.grade < 0 or submission_in.grade > 100:
             raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST,
-                detail="La calificación debe estar entre 1.0 y 7.0"
+                detail="La calificación debe estar entre 0 y 100"
             )
     
     submission = crud_submission.update_submission(db, db_submission=db_submission, submission_in=submission_in)
+    
+    # Evaluation with Business Rules Engine
+    # Automatic Remediation Logic (Grade < 60)
+    if submission_in.grade is not None and submission_in.grade < 60.0:
+        try:
+            # 1. Get concepts linked to this task
+            from app.crud import crud_tarea_concepto, crud_recurso_concepto, crud_recomendacion_estudiante
+            from app.schemas.recomendacion_estudiante import RecomendacionEstudianteCreate
+            
+            # Obtener conceptos de la tarea
+            task_concepts = crud_tarea_concepto.get_conceptos_by_tarea(db, tarea_id=task.id)
+            
+            for tc in task_concepts:
+                # 2. Get resources linked to this concept
+                concept_resources = crud_recurso_concepto.get_recursos_by_concepto(db, concepto_id=tc.concepto_id)
+                
+                for rc in concept_resources:
+                    # 3. Create recommendation
+                    rec_in = RecomendacionEstudianteCreate(
+                        estudiante_id=submission.estudiante_id,
+                        tarea_id=task.id,
+                        recurso_id=rc.recurso_id
+                    )
+                    crud_recomendacion_estudiante.create_recomendacion(db, rec_in)
+            
+            print(f"INFO: Generated remedial recommendations for Student {submission.estudiante_id} (Grade: {submission_in.grade})")
+            
+        except Exception as e:
+            print(f"⚠️  Error generating recommendations: {e}")
+            import traceback
+            traceback.print_exc()
+    
     # Asegurar que submitted_at siempre tenga un valor válido
     submitted_at = submission.fecha_entrega
     if submitted_at is None:

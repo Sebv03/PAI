@@ -27,15 +27,15 @@ def create_admin_user(email: str = "admin@pai.cl", password: str = "admin123", f
     
     try:
         # Verificar si ya existe un admin con ese email
-        existing_user = db.query(User).filter(User.email == email).first()
+        existing_user = db.query(User).filter(User.correo == email).first()
         if existing_user:
-            if existing_user.role == UserRole.ADMINISTRADOR:
+            if existing_user.rol == UserRole.ADMINISTRADOR:
                 print(f"Ya existe un administrador con el email: {email}")
                 return existing_user
             else:
                 # Actualizar el rol a administrador
-                existing_user.role = UserRole.ADMINISTRADOR
-                existing_user.hashed_password = get_password_hash(password)
+                existing_user.rol = UserRole.ADMINISTRADOR
+                existing_user.contraseña_hash = get_password_hash(password)
                 db.commit()
                 db.refresh(existing_user)
                 print(f"Usuario {email} actualizado a administrador")
@@ -43,11 +43,11 @@ def create_admin_user(email: str = "admin@pai.cl", password: str = "admin123", f
         
         # Crear nuevo administrador
         admin_user = User(
-            email=email,
-            full_name=full_name,
-            hashed_password=get_password_hash(password),
-            role=UserRole.ADMINISTRADOR,
-            is_active=True
+            correo=email,
+            nombre_completo=full_name,
+            contraseña_hash=get_password_hash(password),
+            rol=UserRole.ADMINISTRADOR,
+            activo=True
         )
         
         db.add(admin_user)

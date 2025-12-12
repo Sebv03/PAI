@@ -28,6 +28,12 @@ class Task(Base):
     
     # Relación con las Entregas (Una tarea tendrá muchas entregas)
     submissions = relationship("Submission", back_populates="task", cascade="all, delete-orphan")
+    
+    # Relación many-to-many con Conceptos (a través de tarea_conceptos)
+    conceptos = relationship("TareaConcepto", back_populates="tarea", cascade="all, delete-orphan")
+    
+    # Relación con Recomendaciones (una tarea puede estar en muchas recomendaciones)
+    recomendaciones = relationship("RecomendacionEstudiante", back_populates="tarea", cascade="all, delete-orphan")
 
     def __repr__(self):
         return f"<Task(id={self.id}, titulo='{self.titulo}')>"

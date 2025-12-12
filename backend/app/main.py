@@ -6,7 +6,7 @@ from typing import List
 from pathlib import Path
 
 # Importa los routers de la API
-from app.api.endpoints import users, courses, tasks, enrollments, submissions, announcements, ml_predictions, student_profiles
+from app.api.endpoints import users, courses, tasks, enrollments, submissions, announcements, student_profiles, exams
 from app.api.endpoints.login import router as login_router
 
 from app.core.config import settings # <-- Importa la configuración
@@ -53,8 +53,17 @@ app.include_router(tasks.router, prefix="/tasks", tags=["tasks"])
 app.include_router(enrollments.router, prefix="/enrollments", tags=["enrollments"])
 app.include_router(submissions.router, prefix="/submissions", tags=["submissions"])
 app.include_router(announcements.router, prefix="/announcements", tags=["announcements"])
-app.include_router(ml_predictions.router, prefix="/ml", tags=["ML Predictions"])
-app.include_router(student_profiles.router, prefix=f"{settings.API_V1_STR}/student-profiles", tags=["Student Profiles"])
+
+app.include_router(student_profiles.router, prefix=f"{settings.API_V1_STR}/student-profile", tags=["Student Profile"])
+app.include_router(exams.router, prefix=f"{settings.API_V1_STR}/exams", tags=["Exams"])
+
+
+
+from app.api.endpoints import conceptos, recursos, recomendaciones, tareas_conceptos
+app.include_router(conceptos.router, prefix="/conceptos", tags=["Conceptos"])
+app.include_router(recursos.router, prefix="/recursos", tags=["Recursos"])
+app.include_router(recomendaciones.router, prefix="/recomendaciones", tags=["Recomendaciones"])
+app.include_router(tareas_conceptos.router, prefix="", tags=["Tareas-Conceptos"])
 
 @app.get("/", tags=["Root"])
 def read_root():
