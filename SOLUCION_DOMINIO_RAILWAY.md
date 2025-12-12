@@ -65,7 +65,11 @@ Si aún no funciona, verifica:
 ### 2. Start Command está correcto
 - Settings → Deploy → Start Command debe ser:
   ```
-  python -m uvicorn app.main:app --host 0.0.0.0 --port ${PORT:-8000}
+  python start.py
+  ```
+  O alternativamente (si el script no funciona):
+  ```
+  uvicorn app.main:app --host 0.0.0.0 --port 8000
   ```
 
 ### 3. Variables de Entorno están configuradas

@@ -9,31 +9,35 @@ Este error ocurre porque Railway no está expandiendo la variable `$PORT` correc
 
 ## ✅ Soluciones
 
-### Solución 1: Usar Python directamente (Recomendado)
+### Solución 1: Usar script Python start.py (Recomendado)
 
-Si prefieres no usar el script, usa este comando:
-
-1. En Railway, ve a **Settings** → **Deploy**
-2. Cambia **Start Command** a:
-   ```
-   python -m uvicorn app.main:app --host 0.0.0.0 --port ${PORT:-8000}
-   ```
-3. Guarda y haz deploy nuevamente
-
-### Solución 2: Usar uvicorn directamente (Alternativa)
-
-Si la Solución 1 no funciona, prueba:
+He creado un script `backend/start.py` que lee PORT correctamente desde las variables de entorno.
 
 1. En Railway, ve a **Settings** → **Deploy**
 2. Cambia **Start Command** a:
    ```
-   uvicorn app.main:app --host 0.0.0.0 --port ${PORT:-8000}
+   python start.py
    ```
 3. Guarda y haz deploy nuevamente
+
+**Nota:** Este script está en `backend/start.py` y lee PORT automáticamente desde `os.environ`.
+
+### Solución 2: Usar comando directo con puerto fijo (Alternativa)
+
+Si la Solución 1 no funciona, Railway asignará el puerto automáticamente:
+
+1. En Railway, ve a **Settings** → **Deploy**
+2. Cambia **Start Command** a:
+   ```
+   uvicorn app.main:app --host 0.0.0.0 --port 8000
+   ```
+3. Guarda y haz deploy nuevamente
+
+**Nota:** Railway asignará el puerto correcto automáticamente, incluso si especificas 8000.
 
 ## 🔍 ¿Por qué ocurre esto?
 
-Railway proporciona la variable `PORT` automáticamente, pero a veces no expande `$PORT` correctamente en el comando. Usar `python -m uvicorn` con `${PORT:-8000}` es más confiable porque Python puede leer las variables de entorno directamente.
+Railway proporciona la variable `PORT` automáticamente, pero no expande sintaxis de shell como `${PORT:-8000}`. El script `start.py` lee PORT directamente desde `os.environ` en Python, que es la forma más confiable de acceder a variables de entorno en Railway.
 
 ## 📝 Verificación
 

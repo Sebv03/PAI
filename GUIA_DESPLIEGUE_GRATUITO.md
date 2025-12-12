@@ -65,10 +65,10 @@ postgresql://postgres:olzGvwkrSAzQCQfbUOwuGLcwsoJWyLTR@postgres.railway.internal
 5. En la sección **"Deploy"**, configura:
    - **Start Command**: 
    ```
-   python -m uvicorn app.main:app --host 0.0.0.0 --port ${PORT:-8000}
+   python start.py
    ```
    
-   **Nota:** Railway proporciona PORT automáticamente. El comando `${PORT:-8000}` usa PORT si está disponible, o 8000 como respaldo.
+   **Nota:** Este script lee PORT automáticamente desde las variables de entorno que Railway proporciona.
 
 ### 4.3 Configurar Variables de Entorno
 
