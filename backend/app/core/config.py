@@ -9,10 +9,12 @@ class Settings(BaseSettings):
     
     # CORS - Permitir múltiples orígenes (separados por comas)
     # En producción, usa variables de entorno
-    BACKEND_CORS_ORIGINS: List[str] = os.getenv(
-        "BACKEND_CORS_ORIGINS",
-        "http://localhost:5173,http://127.0.0.1:5173"
-    ).split(",") if isinstance(os.getenv("BACKEND_CORS_ORIGINS"), str) else ["http://localhost:5173", "http://127.0.0.1:5173"]
+    _cors_origins = os.getenv("BACKEND_CORS_ORIGINS", "http://localhost:5173,http://127.0.0.1:5173")
+    BACKEND_CORS_ORIGINS: List[str] = (
+        [origin.strip() for origin in _cors_origins.split(",") if origin.strip()]
+        if isinstance(_cors_origins, str)
+        else ["http://localhost:5173", "http://127.0.0.1:5173"]
+    )
     
     # --- ¡CRÍTICO! Tu URL de Base de Datos para PostgreSQL ---
     # En producción, usarás la variable de entorno DATABASE_URL de Railway/Render/Supabase
